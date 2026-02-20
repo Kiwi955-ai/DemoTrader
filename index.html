@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BTC Trader — Demo Trading Platform</title>
+  <meta name="description" content="Bitcoin Demo Trader — Übe mit $10.000 virtuellem Kapital live Bitcoin zu traden." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>₿</text></svg>" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ═══════════════════════════════════════════════════════
+       NAVBAR
+       ═══════════════════════════════════════════════════════ -->
+  <nav class="navbar">
+    <a class="navbar-brand" href="#">
+      <div class="brand-icon">₿</div>
+      <span class="brand-name">BTCTrader</span>
+      <span class="brand-badge">Demo</span>
+    </a>
+
+    <nav class="navbar-nav">
+      <button class="nav-link active" data-page="trade">Trade</button>
+      <button class="nav-link" data-page="performance">Analytics</button>
+      <button class="nav-link" data-page="leaderboard">Leaderboard</button>
+      <button class="nav-link" data-page="backtest">Backtesting</button>
+    </nav>
+
+    <div class="navbar-right">
+      <div class="balance-chip" id="balanceChip">
+        <span class="label">Balance</span>
+        <span class="amount" id="navBalance">$10,000.00</span>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:5px">
+        <div class="conn-dot live" id="connDot"></div>
+        <span class="conn-label" id="connLabel">Live</span>
+      </div>
+
+      <!-- Not logged in -->
+      <button class="btn-auth" id="navAuthBtn">Sign In</button>
+
+      <!-- Logged in -->
+      <div style="display:none;align-items:center;gap:8px" id="userSection">
+        <div class="user-btn" id="userBtn">
+          <div class="user-avatar" id="userInitial">?</div>
+          <span class="user-name" id="userName">Trader</span>
+          <span style="font-size:10px;color:var(--text-3)">▼</span>
+          <div class="user-dropdown" id="userDropdown">
+            <button class="dropdown-item danger" id="logoutBtn">Sign Out</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════════
+       TICKER BAR
+       ═══════════════════════════════════════════════════════ -->
+  <div class="ticker-bar">
+    <div class="ticker-symbol">
+      <div class="coin-icon">₿</div>
+      <span class="pair">BTC/USDT</span>
+    </div>
+
+    <div class="ticker-price" id="tickerPrice">$—</div>
+
+    <div class="ticker-divider"></div>
+
+    <div class="ticker-stat">
+      <div class="stat-label">24h Change</div>
+      <div class="stat-val" id="ticker24Change">—</div>
+    </div>
+
+    <div class="ticker-divider"></div>
+
+    <div class="ticker-stat">
+      <div class="stat-label">24h High</div>
+      <div class="stat-val" id="ticker24High">—</div>
+    </div>
+
+    <div class="ticker-divider"></div>
+
+    <div class="ticker-stat">
+      <div class="stat-label">24h Low</div>
+      <div class="stat-val" id="ticker24Low">—</div>
+    </div>
+
+    <div class="ticker-divider"></div>
+
+    <div class="ticker-stat">
+      <div class="stat-label">Volume (24h)</div>
+      <div class="stat-val" id="tickerVolume">—</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       ACCOUNT SUMMARY BAR
+       ═══════════════════════════════════════════════════════ -->
+  <div class="summary-bar">
+    <div class="summary-cell">
+      <div class="summary-label">Account Balance</div>
+      <div class="summary-value" id="sumBalance">$10,000.00</div>
+      <div class="summary-sub">Available USDT</div>
+    </div>
+    <div class="summary-cell">
+      <div class="summary-label">Total Equity</div>
+      <div class="summary-value" id="sumEquity">$10,000.00</div>
+      <div class="summary-sub" id="sumEqSub">+$0.00 (0.00%)</div>
+    </div>
+    <div class="summary-cell">
+      <div class="summary-label">Unrealised PnL</div>
+      <div class="summary-value" id="sumUnrealized">$0.00</div>
+      <div class="summary-sub" id="sumUnrealSub">0 open positions</div>
+    </div>
+    <div class="summary-cell">
+      <div class="summary-label">Win Rate</div>
+      <div class="summary-value" id="sumWinRate">0%</div>
+      <div class="summary-sub" id="sumWinRateSub">0 trades</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PAGES
+       ═══════════════════════════════════════════════════════ -->
+
+  <!-- ── PAGE: TRADE ──────────────────────────────────────── -->
+  <div class="page active" id="page-trade">
+    <div class="main-area">
+
+      <!-- CENTER: Chart + Portfolio -->
+      <div class="center-column">
+
+        <!-- Chart Panel -->
+        <div class="chart-panel">
+          <!-- Toolbar -->
+          <div class="chart-toolbar">
+            <button class="interval-btn" data-interval="1m">1m</button>
+            <button class="interval-btn" data-interval="5m">5m</button>
+            <button class="interval-btn" data-interval="15m">15m</button>
+            <button class="interval-btn active" data-interval="1h">1h</button>
+            <button class="interval-btn" data-interval="4h">4h</button>
+            <button class="interval-btn" data-interval="1d">1d</button>
+            <div class="chart-toolbar-sep"></div>
+            <span style="font-size:9px;color:var(--text-3);font-family:var(--font-mono)">Scroll to zoom · Drag to pan</span>
+          </div>
+
+          <!-- Chart Wrapper -->
+          <div class="chart-wrapper">
+            <canvas id="tradingChart"></canvas>
+
+            <!-- Crosshair info overlay -->
+            <div class="chart-crosshair-info" id="crosshairInfo">
+              <div class="crosshair-item">
+                <span class="crosshair-label">O</span>
+                <span class="crosshair-open" id="xhOpen">—</span>
+              </div>
+              <div class="crosshair-item">
+                <span class="crosshair-label">H</span>
+                <span class="crosshair-high" id="xhHigh">—</span>
+              </div>
+              <div class="crosshair-item">
+                <span class="crosshair-label">L</span>
+                <span class="crosshair-low" id="xhLow">—</span>
+              </div>
+              <div class="crosshair-item">
+                <span class="crosshair-label">C</span>
+                <span class="crosshair-close" id="xhClose">—</span>
+              </div>
+              <div class="crosshair-item">
+                <span class="crosshair-label">V</span>
+                <span class="crosshair-vol" id="xhVol">—</span>
+              </div>
+            </div>
+
+            <!-- Loading overlay -->
+            <div class="chart-loading" id="chartLoading">
+              <div class="spinner"></div>
+              <div class="chart-loading-text">Loading chart data…</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Portfolio Panel -->
+        <div class="portfolio-panel">
+          <div class="panel-tabs">
+            <button class="panel-tab active" data-tab="positions">
+              Positions <span class="tab-count" id="posCount">0</span>
+            </button>
+            <button class="panel-tab" data-tab="orders">
+              Orders <span class="tab-count" id="ordCount">0</span>
+            </button>
+            <button class="panel-tab" data-tab="trades">Trade History</button>
+          </div>
+
+          <!-- Positions Table -->
+          <div class="panel-content active" id="panel-positions">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Side</th>
+                  <th>Entry Price</th>
+                  <th>Current</th>
+                  <th>Size (BTC)</th>
+                  <th>Unrealized PnL</th>
+                  <th>PnL %</th>
+                  <th>Stop Loss</th>
+                  <th>Take Profit</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="positionsBody">
+                <tr><td colspan="10">
+                  <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <div class="empty-text">No open positions</div>
+                  </div>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Orders Table -->
+          <div class="panel-content" id="panel-orders">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Type</th>
+                  <th>Side</th>
+                  <th>Price</th>
+                  <th>Filled At</th>
+                  <th>Quantity</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="ordersBody">
+                <tr><td colspan="8">
+                  <div class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <div class="empty-text">No orders</div>
+                  </div>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Trade History Table -->
+          <div class="panel-content" id="panel-trades">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Side</th>
+                  <th>Entry</th>
+                  <th>Exit</th>
+                  <th>Size</th>
+                  <th>PnL</th>
+                  <th>PnL %</th>
+                  <th>Fee</th>
+                  <th>Duration</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="tradesBody">
+                <tr><td colspan="10">
+                  <div class="empty-state">
+                    <div class="empty-icon">📊</div>
+                    <div class="empty-text">No closed trades yet</div>
+                  </div>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div><!-- /center-column -->
+
+      <!-- RIGHT SIDEBAR: Order Panel -->
+      <div class="order-sidebar">
+        <div class="sidebar-header">
+          <h3>Place Order</h3>
+          <div class="order-type-tabs">
+            <button class="order-type-tab active" data-type="market">Market</button>
+            <button class="order-type-tab" data-type="limit">Limit</button>
+          </div>
+        </div>
+
+        <div class="sidebar-body">
+
+          <!-- Buy / Sell -->
+          <div class="side-toggle">
+            <button class="side-toggle-btn buy active" data-side="buy">⬆ Buy / Long</button>
+            <button class="side-toggle-btn sell" data-side="sell">⬇ Sell / Short</button>
+          </div>
+
+          <!-- Available -->
+          <div class="avail-row">
+            <span class="avail-label">Available</span>
+            <span class="avail-amount" id="orderAvail">$10,000.00</span>
+          </div>
+
+          <!-- Limit Price (hidden by default) -->
+          <div class="form-group" id="limitPriceGroup" style="display:none">
+            <label class="form-label">Limit Price</label>
+            <div class="form-input-wrap">
+              <input type="number" class="form-input" id="inputLimitPrice" placeholder="0.00" step="0.01" />
+              <span class="form-input-unit">USDT</span>
+            </div>
+          </div>
+
+          <!-- Amount Input Mode -->
+          <div class="form-group">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+              <label class="form-label">Amount</label>
+              <div class="input-mode">
+                <button class="mode-btn" data-mode="btc">BTC</button>
+                <button class="mode-btn active" data-mode="usdt">USDT</button>
+              </div>
+            </div>
+
+            <!-- BTC input -->
+            <div id="btcInputWrap" style="display:none">
+              <div class="form-input-wrap">
+                <input type="number" class="form-input" id="inputAmountBtc" placeholder="0.00000" step="0.00001" />
+                <span class="form-input-unit">BTC</span>
+              </div>
+            </div>
+
+            <!-- USDT input -->
+            <div id="usdtInputWrap">
+              <div class="form-input-wrap">
+                <input type="number" class="form-input" id="inputAmountUsdt" placeholder="0.00" step="0.01" />
+                <span class="form-input-unit">USDT</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick % -->
+          <div class="pct-btns">
+            <button class="pct-btn" data-pct="0.25">25%</button>
+            <button class="pct-btn" data-pct="0.50">50%</button>
+            <button class="pct-btn" data-pct="0.75">75%</button>
+            <button class="pct-btn" data-pct="1.00">MAX</button>
+          </div>
+
+          <!-- SL/TP collapsible -->
+          <div>
+            <div class="collapsible-header" id="slTpToggle">
+              <span class="c-label">Stop Loss &amp; Take Profit</span>
+              <span class="c-arrow">▼</span>
+            </div>
+            <div class="collapsible-body" id="slTpBody">
+              <div class="form-group">
+                <label class="form-label">Stop Loss</label>
+                <div class="form-input-wrap">
+                  <input type="number" class="form-input sl" id="inputStopLoss" placeholder="SL Price" step="1" />
+                  <span class="form-input-unit">USDT</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Take Profit</label>
+                <div class="form-input-wrap">
+                  <input type="number" class="form-input tp" id="inputTakeProfit" placeholder="TP Price" step="1" />
+                  <span class="form-input-unit">USDT</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Order Summary -->
+          <div class="order-summary" id="orderSummaryBox" style="display:none">
+            <div class="summary-row">
+              <span class="s-label">Amount</span>
+              <span class="s-val" id="sumBtc">—</span>
+            </div>
+            <div class="summary-row">
+              <span class="s-label">Order Value</span>
+              <span class="s-val" id="sumValue">—</span>
+            </div>
+            <div class="summary-row">
+              <span class="s-label">Fee (0.1%)</span>
+              <span class="s-val" id="sumFee">—</span>
+            </div>
+            <div class="summary-row total">
+              <span class="s-label">Total Cost</span>
+              <span class="s-val" id="sumTotal">—</span>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <button class="btn-submit buy" id="orderSubmitBtn">⚡ Buy BTC</button>
+
+          <!-- Fee note -->
+          <div style="text-align:center;font-size:9px;font-family:var(--font-mono);color:var(--text-4)">
+            0.1% maker/taker fee · No leverage (v1) · Paper trading only
+          </div>
+
+        </div><!-- /sidebar-body -->
+      </div><!-- /order-sidebar -->
+
+    </div><!-- /main-area -->
+  </div><!-- /page-trade -->
+
+
+  <!-- ── PAGE: PERFORMANCE ─────────────────────────────────── -->
+  <div class="page" id="page-performance">
+    <div class="page-scroll">
+      <h2 class="page-title" style="margin-bottom:4px">Performance Analytics</h2>
+      <p class="page-subtitle" style="margin-bottom:20px">Your trading performance overview</p>
+
+      <div class="perf-grid">
+        <div class="perf-card">
+          <div class="perf-card-label">Total P&amp;L</div>
+          <div class="perf-card-value" id="perfTotalPnl">$0.00</div>
+          <div class="perf-card-sub">vs. starting $10,000</div>
+        </div>
+        <div class="perf-card">
+          <div class="perf-card-label">Total Return</div>
+          <div class="perf-card-value" id="perfReturn">0.00%</div>
+          <div class="perf-card-sub">Since account creation</div>
+        </div>
+        <div class="perf-card">
+          <div class="perf-card-label">Win Rate</div>
+          <div class="perf-card-value" id="perfWinRate">0%</div>
+          <div class="perf-card-sub">Winning trades</div>
+        </div>
+        <div class="perf-card">
+          <div class="perf-card-label">Max Drawdown</div>
+          <div class="perf-card-value negative" id="perfMaxDD">0.00%</div>
+          <div class="perf-card-sub">Peak-to-trough</div>
+        </div>
+        <div class="perf-card">
+          <div class="perf-card-label">Total Trades</div>
+          <div class="perf-card-value" id="perfTrades">0</div>
+          <div class="perf-card-sub">Closed positions</div>
+        </div>
+        <div class="perf-card">
+          <div class="perf-card-label">Avg. Win</div>
+          <div class="perf-card-value positive" id="perfAvgWin">$0.00</div>
+          <div class="perf-card-sub">Per winning trade</div>
+        </div>
+        <div class="perf-card">
+          <div class="perf-card-label">Avg. Loss</div>
+          <div class="perf-card-value negative" id="perfAvgLoss">-$0.00</div>
+          <div class="perf-card-sub">Per losing trade</div>
+        </div>
+        <div class="perf-card">
+          <div class="perf-card-label">Current Equity</div>
+          <div class="perf-card-value" id="perfEquity">$10,000.00</div>
+          <div class="perf-card-sub">Balance + Open PnL</div>
+        </div>
+      </div>
+
+      <!-- Equity Curve -->
+      <div class="chart-container">
+        <h3>Equity Curve</h3>
+        <canvas id="equityChart" height="200"></canvas>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── PAGE: LEADERBOARD ─────────────────────────────────── -->
+  <div class="page" id="page-leaderboard">
+    <div class="page-header">
+      <h2 class="page-title">🏆 Leaderboard</h2>
+      <p class="page-subtitle">Top traders ranked by portfolio equity</p>
+    </div>
+
+    <div class="lb-table-wrap" style="margin:16px 20px">
+      <div class="lb-row header">
+        <div>Rank</div>
+        <div>Trader</div>
+        <div class="text-right">Equity</div>
+        <div class="text-right">Total P&amp;L</div>
+        <div class="text-right">Return</div>
+        <div class="text-right">Trades</div>
+        <div class="text-right">Win Rate</div>
+      </div>
+      <div id="leaderboardBody">
+        <div class="empty-state" style="padding:40px">
+          <div class="empty-icon">🏆</div>
+          <div class="empty-text">No traders yet. Register and be the first!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAGE: BACKTESTING ─────────────────────────────────── -->
+  <div class="page" id="page-backtest">
+    <div class="backtest-layout">
+
+      <!-- Sidebar Controls -->
+      <div class="backtest-sidebar">
+        <div class="backtest-panel">
+          <h4>📅 Date Selection</h4>
+          <div class="form-group">
+            <label class="form-label">Start Date</label>
+            <input type="date" class="form-input" id="btDatePicker" style="padding:8px 10px" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Interval</label>
+            <select class="form-input" id="btInterval" style="padding:8px 10px">
+              <option value="1h" selected>1 Hour</option>
+              <option value="4h">4 Hours</option>
+              <option value="1d">1 Day</option>
+              <option value="15m">15 Minutes</option>
+            </select>
+          </div>
+          <button class="btn-submit buy" id="btLoadBtn" style="margin-top:8px">
+            Load Historical Data
+          </button>
+        </div>
+
+        <div class="backtest-panel">
+          <h4>ℹ️ About Backtesting</h4>
+          <p style="font-size:10px;color:var(--text-3);font-family:var(--font-mono);line-height:1.6">
+            Select a date in the past to load historical BTC candles.<br><br>
+            The chart will show data up to your selected date — no future data is revealed.<br><br>
+            You can analyze historical price action and test your strategies.
+          </p>
+        </div>
+      </div>
+
+      <!-- Main chart area -->
+      <div class="bt-main">
+        <div class="bt-chart-area">
+          <div class="bt-chart-header">
+            <h4>BTC/USDT — Historical Data</h4>
+            <span class="bt-date-display" id="btDateDisplay">Select a date →</span>
+          </div>
+          <canvas id="backtestChart" style="flex:1;min-height:0"></canvas>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- ═══════════════════════════════════════════════════════════
+     AUTH MODAL
+     ═══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-logo">
+        <div class="brand-icon" style="width:34px;height:34px;font-size:14px">₿</div>
+        <div>
+          <div class="title">BTC Demo Trader</div>
+          <div class="subtitle">Start with $10,000 virtual capital</div>
+        </div>
+      </div>
+
+      <div class="modal-mode-toggle">
+        <button class="modal-mode-btn active" data-mode="login">Sign In</button>
+        <button class="modal-mode-btn" data-mode="register">Create Account</button>
+      </div>
+
+      <button class="modal-close" id="modalCloseBtn">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <form class="modal-form" id="authForm">
+        <div class="modal-input-group">
+          <label class="modal-label">Email Address</label>
+          <input type="email" class="modal-input" id="authEmail" placeholder="trader@example.com" required />
+        </div>
+
+        <!-- Register only -->
+        <div style="display:none;flex-direction:column;gap:14px" id="registerFields">
+          <div class="modal-input-group">
+            <label class="modal-label">Username</label>
+            <input type="text" class="modal-input" id="authUsername" placeholder="tradingpro" minlength="3" maxlength="20" />
+          </div>
+        </div>
+
+        <div class="modal-input-group">
+          <label class="modal-label">Password</label>
+          <input type="password" class="modal-input" id="authPassword" placeholder="••••••••" minlength="6" required />
+        </div>
+
+        <button type="submit" class="modal-submit" id="authSubmitBtn">Sign In</button>
+
+        <div class="modal-hint" id="authHint" style="display:none">
+          🎁 New accounts start with <span>$10,000</span> virtual USDT to trade with
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TOAST CONTAINER
+     ═══════════════════════════════════════════════════════════ -->
+<div id="toast-container"></div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCRIPTS
+     ═══════════════════════════════════════════════════════════ -->
+<script src="assets/js/chart.js"></script>
+<script src="assets/js/app.js"></script>
+
+</body>
+</html>
